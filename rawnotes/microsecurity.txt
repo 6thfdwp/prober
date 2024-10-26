@@ -1,0 +1,100 @@
+It is common to have authentication (establishing the user’s identity) performed by a dedicated, centralized service or even an API gateway. This central service can then further delegate user authentication to a third party.
+
+When working with authorization (establishing a user’s authority or permission to access a secured resource), in a microservices environment keep group or role definitions coarse grained in common, cross cutting services. Allow individual services to maintain their own fine grained controls. The guiding principle again is independence. A balance must be found between what can be defined in common authorization service to meet requirements for the application as a whole, and what authorization requirements are implementation details for a particular service.
+
+OAuth 2.0
+The OAuth 2.0 authorization framework enables a third-party application to obtain limited access to an HTTP service, either on behalf of a resource owner by orchestrating an approval interaction between the resource owner and the HTTP service, or by allowing the third-party application to obtain access on its own behalf.
+
+
+Get 20% off forever
+
+The service interaction goes through these steps:
+
+The front end (web client or mobile application) makes a request to the Auth service on behalf of the user.
+
+The Auth service returns a forwarding response that is automatically handled by the browser to forward the user to the selected OAuth provider with the application identifier.
+
+After the user has authenticated and granted permission, the OAuth provider returns an authorization code in another redirect response. The browser automatically handles the redirect to invoke a callback on the Auth service with the authorization code.
+
+The Auth service then contacts the OAuth provider to exchange the authorization code for an access token.
+
+The Auth service then converts data from that token into a Signed JSON Web Tokens (JWTs), which allows you to verify the identity of the user over subsequent inter-service calls without going back to the OAuth provider.
+
+Spring Boot and OAuth2 Implementation
+
+JWT
+JWTs are designed for securely transmitting information between parties as a JSON object. This information can be verified and trusted because it is digitally signed.
+
+Although JWTs can be encrypted to also provide secrecy between parties, we will focus on signed tokens. Signed tokens can verify the integrity of the claims contained within it, while encrypted tokens hide those claims from other parties. When tokens are signed using public/private key pairs, the signature also certifies that only the party holding the private key is the one that signed it.
+
+
+Structure : A JWT is composed of three parts separated by dots (`.`):
+
+Header
+The header typically consists of two parts: the type of the token, which is JWT, and the signing algorithm being used, such as HMAC SHA256 or RSA.
+
+For example:
+
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+Payload
+The second part of the token is the payload, which contains the claims. Claims are statements about an entity (typically, the user) and additional data. There are three types of claims: registered, public, and private claims.
+
+Registered claims: These are a set of predefined claims which are not mandatory but recommended, to provide a set of useful, interoperable claims. Some of them are: iss (issuer), exp (expiration time), sub (subject), aud (audience).
+
+Public claims: These can be defined at will by those using JWTs. But to avoid collisions they should be defined in the IANA JSON Web Token Registry or be defined as a URI that contains a collision resistant namespace.
+
+Private claims: These are the custom claims created to share information between parties that agree on using them and are neither registered or public claims.
+
+Example Paylod :
+
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "admin": true
+}
+Signature:
+To create the signature part you have to take the encoded header, the encoded payload, a secret, the algorithm specified in the header, and sign that.
+
+For example if you want to use the HMAC SHA256 algorithm, the signature will be created in the following way:
+
+HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload),
+  secret)
+Complete JWT Example
+A complete JWT looks like this:
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+How do JSON Web Tokens work?
+In authentication, when the user successfully logs in using their credentials, a JSON Web Token will be returned. Since tokens are credentials, great care must be taken to prevent security issues. In general, you should not keep tokens longer than required.
+
+You also should not store sensitive session data in browser storage due to lack of security.
+
+Whenever the user wants to access a protected route or resource, the user agent should send the JWT, typically in the Authorization header using the Bearer schema. The content of the header should look like the following:
+
+Authorization: Bearer <token>
+When Should you use Json Web Tokens?
+Here are few scenarios on when should we consider using the Json Web tokens.
+
+Authentication
+One of the most common scenario of using JWT is authentication. When an user logs in with the credentials like username and password, each subsequent request will include the JWT, which allows the user to access routes, services and resources. JWT has been widely used in a function called Single Sign On (SSO) because of its small overhead and also it can be easily used across different domains.
+
+Information Exchange
+Any kind of data can be transmitted securely between parties since they can be signed, which means you will know who the senders are and furthermore the structure of JWT allows users to verify whether the transmitted data has been tampered with or not.
+
+Spring Boot 3.0 – JWT Authentication with Spring Security
+
+Rate Limiting
+Rate limiting is a feature that can be implemented in a service to prevent consumers from diminishing stability by making too many requests. Consumers can be given a limit on the number of requests they make. This limit could be per consumer, per user per consumer, or whatever you decide. If limits are per consumer, then depending on how much your server trusts the consumer, the limits could be higher. Some services even offer a subscription fee for increasing this limit.
+
+Rate limiting should not be enforced if your service is consumed only internally. It should be enforced only at the furthest point downstream where user requests first enter your organization.
+
+
+Rate Limiter
+If your service makes use of rate limits, be sure information about the limit can be accessed programmatically.
+
+Below is an example of how GitHub conveys rate limit information to third parties with the introduction of X-RateLimit headers. The Limit header represents the total limit per period of time, Remaining is how many requests remain to be made during this period of time, and Reset is a timestamp for when the period resets.
