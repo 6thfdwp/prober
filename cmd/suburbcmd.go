@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -105,14 +106,19 @@ func collectHouseProfile(browser *rod.Browser, url string) string {
 	est := page.MustElement("[aria-label='Property value']").MustText()
 	// page.MustElement("[aria-label='Property timeline']")
 	feat := page.MustElement("[aria-label='Property features']").MustText()
-	// zones := page.MustElement("[aria-label='Government planning overlays & zones']").MustText()
+	zones := page.MustElement("[aria-label='Government planning overlays & zones']").MustText()
 
 	// return fmt.Sprintf("Estimated: %s, Features: %s, Gov overlays: %s", est, feat, zones)
-	log.Printf("## house key info %s", fmt.Sprintf("Estimated: %s, Features: %s", est, feat))
-	return fmt.Sprintf("Estimated: %s, Features: %s", est, feat)
+	// log.Printf("## house key info %s", fmt.Sprintf("Estimated: %s, Features: %s", est, feat))
+	return fmt.Sprintf("Estimated: %s, Features: %s, Zones: %s", est, feat, zones)
 }
 
-func onExecSubStreet(fullSub string, street string) string {
+func onExecSubStreet(fullSub string, street string, lots []string) string {
+	if len(lots) == 0 {
+		log.Fatalln("need lots for the street: " + street)
+		return ""
+	}
+
 	path, _ := launcher.LookPath()
 
 	// u := "ws://127.0.0.1:9222/devtools/browser/fdcdabc6-0c90-48da-ab98-86824158bb4d"
@@ -132,14 +138,15 @@ func onExecSubStreet(fullSub string, street string) string {
 
 	log.Printf("## street page %s loaded", url)
 	// page.MustScreenshotFullPage("./screenshots/street.png")
+	log.Printf("## street page loaded, waiting 3 secs to continue ")
+	time.Sleep(3 * time.Second)
 
 	links := page.MustElements("a")
 	// links := page.MustWaitElementsMoreThan("a", 3).MustElements("a")
-	log.Printf("## links found %d, waiting 3 secs to continue ", len(links))
-	time.Sleep(3 * time.Second)
+	log.Printf("links found %d", len(links))
 
-	// res := make([]string, 0)
 	res := map[string]string{}
+	// lotLinks := []string{}
 	for _, link := range links {
 		href := link.MustAttribute("href")
 
@@ -148,17 +155,19 @@ func onExecSubStreet(fullSub string, street string) string {
 			continue
 		}
 		// only visiting house number we're interested in
-		if !strings.Contains(*href, "45-pid") {
+		matched := slices.ContainsFunc(lots, func(num string) bool {
+			return strings.Contains(*href, num+"-pid")
+		})
+		if !matched {
 			continue
 		}
+
+		// lotLinks = append(lotLinks, *href)
 		// !strings.Contains(*href, "10-pid") ||
-		// !strings.Contains(*href, "20-pid") ||
-		// !strings.Contains(*href, "30-pid") ||
-		// !strings.Contains(*href, "45-pid") {
-		// !strings.Contains(*href, "42-pid") || !strings.Contains(*href, "50-pid") || !strings.Contains(*href, "60-pid") {
 
 		houseKeyInfo := collectHouseProfile(browser, subProfile.ToPropertyHouseUrl(*href))
 		res[fullSub+"/"+street] = houseKeyInfo
+		res[*href] = houseKeyInfo
 		time.Sleep(1 * time.Second)
 	}
 
@@ -186,8 +195,9 @@ func onExec(input []string) string {
 }
 
 func NewSuburbCmd() *cobra.Command {
-	var suburbs, street string
+	var suburbs, street, lotsNum string
 
+	// Usage: ./prober suburb -n daisy-hill-qld-4127 -s gladewood-dr -lot 45,48
 	var suburbCmd = &cobra.Command{
 		Use:   "suburb",
 		Short: "Suburb command to probe suburb details",
@@ -199,9 +209,10 @@ func NewSuburbCmd() *cobra.Command {
 			}
 
 			suburbList := strings.Split(suburbs, ",")
-			if street != "" {
-				log.Printf("## start exec suburb street probing %+v", street)
-				output := onExecSubStreet(suburbList[0], street)
+			lots := strings.Split(lotsNum, ",")
+			if street != "" && lotsNum != "" {
+				log.Printf("## start exec suburb street probing %+v, lots: %s", street, lots)
+				output := onExecSubStreet(suburbList[0], street, lots)
 
 				fmt.Println(output)
 				return
@@ -216,6 +227,8 @@ func NewSuburbCmd() *cobra.Command {
 	}
 
 	suburbCmd.Flags().StringVarP(&suburbs, "names", "n", "", "Comma-separated list of suburb names")
-	suburbCmd.Flags().StringVarP(&street, "street", "s", "", "Street of suburb names")
+	suburbCmd.Flags().StringVarP(&street, "street", "s", "", "Street name of suburb")
+	suburbCmd.Flags().StringVarP(&lotsNum, "lots", "l", "", "House lot number on the Street of a suburb")
+
 	return suburbCmd
 }

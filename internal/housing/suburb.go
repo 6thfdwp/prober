@@ -2,10 +2,13 @@ package housing
 
 import "strings"
 
-type SuburbProfileCollector interface {
-	DoMktInsights()
+type SuburbProfileProber interface {
+	DoMarketInsights()
 }
-type SuburbStreetsCollector interface {
+
+// type suburbRodProber struct{}
+
+type SuburbStreetProber interface {
 }
 
 type SuburbProfile struct {
