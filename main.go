@@ -10,8 +10,11 @@ import (
 const (
 // sub1 = "kallangur-qld-4503"
 // sub2 = "petrie-qld-4502"
-// mango-hill-qld-4509, lawnton-qld-4501, warner-qld-4500,griffin-qld-4503
-// daisy-hill-qld-4127, heritage-park-qld-4118
+// warner-qld-4500,griffin-qld-4503
+// daisy-hill-qld-4127,
+
+// ripley-qld-4306,redbank-plains-qld-4301, heritage-park-qld-4118
+// coorparoo-qld-4151,cannon-hill-qld-4170,carina-qld-4152
 )
 
 func main() {

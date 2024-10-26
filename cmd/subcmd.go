@@ -12,7 +12,6 @@ import (
 
 	"github.com/6thfdwp/prober/internal/housing"
 	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/devices"
 	"github.com/go-rod/rod/lib/launcher"
 
 	"github.com/spf13/cobra"
@@ -28,10 +27,7 @@ func checkErr(err error) {
 		fmt.Println("can't handle", err)
 	}
 }
-func collectSupplyDemand(browser *rod.Browser, input string) string {
-
-	subProfile := housing.NewSuburb(input)
-
+func collectSupplyDemand(browser *rod.Browser, subProfile housing.SuburbProfile) string {
 	url := subProfile.ToREAFullUrl()
 	log.Printf("## visiting %s", url)
 	page := browser.MustPage(url).MustWaitLoad()
@@ -52,12 +48,11 @@ func collectSupplyDemand(browser *rod.Browser, input string) string {
 	return content
 }
 
-func collectExtra(browser *rod.Browser, input string) string {
-	parts := strings.Split(input, "-")
-	l := len(parts)
-	state, postcode := parts[l-2], parts[l-1]
-	sub := postcode + "-" + strings.Join(parts[:l-2], "-")
-	url := "https://www.yourinvestmentpropertymag.com.au/top-suburbs/" + state + "/" + sub
+func collectExtra(suburb housing.SuburbProfile) string {
+	browser := rod.New().MustConnect()
+	defer browser.Close()
+
+	url := suburb.ToYourInvestFullUrl()
 	log.Printf("## visiting %s", url)
 	page := browser.MustPage(url).MustWaitLoad()
 	log.Printf("## page loaded for %s", url)
@@ -66,37 +61,21 @@ func collectExtra(browser *rod.Browser, input string) string {
 	log.Printf("## done %s", url)
 	return content
 }
-func collectMktInsights(browser *rod.Browser, suburb string) string {
+func collectMktInsights(suburb housing.SuburbProfile) string {
+	browser := rod.New().MustConnect()
+	defer browser.Close()
 	// use Domain.com as data source
-	url := "https://www.domain.com.au/suburb-profile/" + suburb
+	url := suburb.ToDmainFullUrl()
 	page := browser.MustPage(url).MustWaitLoad()
 	log.Printf("## page %s loaded", url)
 
-	page.MustScreenshotFullPage("./screenshots/sub.png")
+	// page.MustScreenshotFullPage("./screenshots/sub.png")
 	page.MustElement("[name='4 Bedroom House']").MustClick()
 	mktInsights := page.MustElement(".suburb-insights").MustText()
 	pops := page.MustElement("[data-testid='demographics']").MustText()
 
 	log.Printf("## done %s", url)
 	return mktInsights + "demographics: " + pops
-}
-
-var MyDevice = devices.Device{
-	Title:          "Chrome computer",
-	Capabilities:   []string{"touch", "mobile"},
-	UserAgent:      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-	AcceptLanguage: "en",
-	Screen: devices.Screen{
-		DevicePixelRatio: 2,
-		Horizontal: devices.ScreenSize{
-			Width:  1500,
-			Height: 900,
-		},
-		Vertical: devices.ScreenSize{
-			Width:  1500,
-			Height: 900,
-		},
-	},
 }
 
 func collectHouseProfile(browser *rod.Browser, url string) string {
@@ -113,7 +92,7 @@ func collectHouseProfile(browser *rod.Browser, url string) string {
 	return fmt.Sprintf("Estimated: %s, Features: %s, Zones: %s", est, feat, zones)
 }
 
-func onExecSubStreet(fullSub string, street string, lots []string) string {
+func onExecSubStreet(subName string, street string, lots []string) string {
 	if len(lots) == 0 {
 		log.Fatalln("need lots for the street: " + street)
 		return ""
@@ -129,7 +108,7 @@ func onExecSubStreet(fullSub string, street string, lots []string) string {
 	time.Sleep(3 * time.Second)
 	defer browser.Close()
 
-	subProfile := housing.NewSuburb(fullSub)
+	subProfile := housing.NewSuburb(subName)
 	url := subProfile.ToPropertyStreetUrl(street)
 	log.Printf("## visiting street page %s", url)
 
@@ -162,11 +141,8 @@ func onExecSubStreet(fullSub string, street string, lots []string) string {
 			continue
 		}
 
-		// lotLinks = append(lotLinks, *href)
-		// !strings.Contains(*href, "10-pid") ||
-
 		houseKeyInfo := collectHouseProfile(browser, subProfile.ToPropertyHouseUrl(*href))
-		res[fullSub+"/"+street] = houseKeyInfo
+		res[subName+"/"+street] = houseKeyInfo
 		res[*href] = houseKeyInfo
 		time.Sleep(1 * time.Second)
 	}
@@ -178,16 +154,17 @@ func onExecSubStreet(fullSub string, street string, lots []string) string {
 }
 
 func onExec(input []string) string {
-	browser := rod.New().MustConnect()
-	defer browser.Close()
+	// browser := rod.New().MustConnect()
+	// defer browser.Close()
 
 	res := make(map[string]string)
-	for _, suburb := range input {
-		content := collectMktInsights(browser, suburb)
-		extra := collectExtra(browser, suburb)
+	for _, subname := range input {
+		suburb := housing.NewSuburb(subname)
+		content := collectMktInsights(suburb)
+		extra := collectExtra(suburb)
 
 		// spd := collectSupplyDemand(browser, suburb)
-		res[suburb] = content + "extra demographics:" + extra
+		res[subname] = content + "extra demographics:" + extra
 
 	}
 	d, _ := json.Marshal(res)
@@ -197,7 +174,7 @@ func onExec(input []string) string {
 func NewSuburbCmd() *cobra.Command {
 	var suburbs, street, lotsNum string
 
-	// Usage: ./prober suburb -n daisy-hill-qld-4127 -s gladewood-dr -lot 45,48
+	// Usage: ./prober suburb -n daisy-hill-qld-4127 -s gladewood-dr -l (--lots) 45,48
 	var suburbCmd = &cobra.Command{
 		Use:   "suburb",
 		Short: "Suburb command to probe suburb details",

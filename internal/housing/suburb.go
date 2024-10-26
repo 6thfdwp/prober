@@ -21,9 +21,10 @@ type SuburbProfile struct {
 }
 
 const (
-	PropertySite = "https://www.property.com.au"
-	REASite      = "https://www.realestate.com.au"
-	DomainSite   = "https://www.domain.com.au"
+	PropertySite   = "https://www.property.com.au"
+	REASite        = "https://www.realestate.com.au"
+	DomainSite     = "https://www.domain.com.au"
+	YourInvestSite = "https://www.yourinvestmentpropertymag.com.au"
 )
 
 // n has format daisy-hill-qld-4127
@@ -40,7 +41,11 @@ func NewSuburb(n string) SuburbProfile {
 
 func (t *SuburbProfile) ToDmainFullUrl() string {
 	// daisy-hill-qld-4127
-	return DomainSite + "/" + t.Name + "-" + t.State + "-" + t.Postcode
+	return DomainSite + "/suburb-profile/" + t.Name + "-" + t.State + "-" + t.Postcode
+}
+
+func (t *SuburbProfile) ToYourInvestFullUrl() string {
+	return YourInvestSite + "/top-suburbs/" + t.State + "/" + t.Postcode + "-" + t.Name
 }
 
 func (t *SuburbProfile) ToPropertyStreetUrl(street string) string {
@@ -49,6 +54,7 @@ func (t *SuburbProfile) ToPropertyStreetUrl(street string) string {
 func (t *SuburbProfile) ToPropertyHouseUrl(streetlot string) string {
 	return PropertySite + streetlot
 }
+
 func (t *SuburbProfile) ToREAFullUrl() string {
 	//
 	return REASite + "/" + t.State + "/" + t.Postcode
