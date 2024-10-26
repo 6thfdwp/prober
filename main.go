@@ -12,14 +12,13 @@ const (
 // sub2 = "petrie-qld-4502"
 // mango-hill-qld-4509, lawnton-qld-4501, warner-qld-4500,griffin-qld-4503
 // daisy-hill-qld-4127, heritage-park-qld-4118
-// DomainUrl = "https://www.domain.com.au/suburb-profile/regents-park-qld-4118"
 )
 
 func main() {
 	var rootCmd = &cobra.Command{
 		Use:   "prober",
 		Short: "Prober CLI tool",
-		Long:  `Prober CLI tool to extract key info.`,
+		Long:  `Prober CLI tool to extract housing key info for suburbs and streets.`,
 	}
 
 	rootCmd.AddCommand(cmd.NewSuburbCmd())
