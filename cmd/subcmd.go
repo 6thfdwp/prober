@@ -53,9 +53,8 @@ func collectExtra(suburb housing.SuburbProfile) string {
 	defer browser.Close()
 
 	url := suburb.ToYourInvestFullUrl()
-	log.Printf("## visiting %s", url)
 	page := browser.MustPage(url).MustWaitLoad()
-	log.Printf("## page loaded for %s", url)
+	log.Printf("## visiting %s", url)
 
 	content := page.MustElement(".key-demographics").MustText()
 	log.Printf("## done %s", url)
@@ -67,7 +66,7 @@ func collectMktInsights(suburb housing.SuburbProfile) string {
 	// use Domain.com as data source
 	url := suburb.ToDmainFullUrl()
 	page := browser.MustPage(url).MustWaitLoad()
-	log.Printf("## page %s loaded", url)
+	log.Printf("## visiting page %s loaded", url)
 
 	// page.MustScreenshotFullPage("./screenshots/sub.png")
 	page.MustElement("[name='4 Bedroom House']").MustClick()
@@ -105,7 +104,7 @@ func onExecSubStreet(subName string, street string, lots []string) string {
 	// browser := rod.New().DefaultDevice(MyDevice).ControlURL(u).MustConnect()
 	wsurl := launcher.NewUserMode().Bin(path).MustLaunch()
 	browser := rod.New().ControlURL(wsurl).MustConnect()
-	time.Sleep(3 * time.Second)
+	// time.Sleep(3 * time.Second)
 	defer browser.Close()
 
 	subProfile := housing.NewSuburb(subName)
@@ -154,9 +153,6 @@ func onExecSubStreet(subName string, street string, lots []string) string {
 }
 
 func onExec(input []string) string {
-	// browser := rod.New().MustConnect()
-	// defer browser.Close()
-
 	res := make(map[string]string)
 	for _, subname := range input {
 		suburb := housing.NewSuburb(subname)
