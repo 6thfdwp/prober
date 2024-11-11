@@ -8,17 +8,19 @@ Take a step back and think step-by-step about how to achieve the best possible r
 
 - Extract these key info into a table with columns Median, Y2Y Growth trend, Rental median, population, avg age and owner occupied. Try add extra columns if you think also important from input text.
 
-- Use format x% -> x1% -> .. for Y2Y growth column in chronological order, i.e earlier years appear before later years
+- Use format x% -> x1% -> .. for Y2Y growth column in chronological order, i.e earlier years appear before later years per suburb. Put years' growth in the single column with provided format, not separate to different rows
 
-- Can separate demographics info to different table
+- Can separate demographics info to another table
 
 # OUTPUT INSTRUCTIONS
 
-- Just a clear table is enough for easy comparison across different suburbs
+- Use one table for growth trend, price, rental info, combine all suburbs into the same table for easy comparison across different suburbs
+
+- Use another table for demographics, also combine all suburbs to this signle table. 
 
 - Use Markdown format
 
-- Ensure you follow ALL these instructions when creating your output.
+- Ensure you follow ALL these steps and instructions when creating your output.
 
 
 # INPUT

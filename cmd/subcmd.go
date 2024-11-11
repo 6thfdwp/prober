@@ -57,7 +57,7 @@ func collectExtra(suburb housing.SuburbProfile) string {
 	log.Printf("## visiting %s", url)
 
 	content := page.MustElement(".key-demographics").MustText()
-	log.Printf("## done %s", url)
+	log.Printf("## done %s", suburb.Name)
 	return content
 }
 func collectMktInsights(suburb housing.SuburbProfile) string {
@@ -68,12 +68,13 @@ func collectMktInsights(suburb housing.SuburbProfile) string {
 	page := browser.MustPage(url).MustWaitLoad()
 	log.Printf("## visiting page %s loaded", url)
 
-	// page.MustScreenshotFullPage("./screenshots/sub.png")
-	page.MustElement("[name='4 Bedroom House']").MustClick()
+	page.MustScreenshotFullPage("./outputs/screenshots/sub.png")
+	page.MustElement("[name='4 Bedroom House']").MustClick().MustWaitLoad()
+	time.Sleep(1 * time.Second)
 	mktInsights := page.MustElement(".suburb-insights").MustText()
 	pops := page.MustElement("[data-testid='demographics']").MustText()
 
-	log.Printf("## done %s", url)
+	log.Printf("## done for %s", suburb.Name)
 	return mktInsights + "demographics: " + pops
 }
 
