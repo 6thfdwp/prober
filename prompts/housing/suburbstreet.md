@@ -6,7 +6,7 @@ Take a step back and think step-by-step about how to achieve the best possible r
 
 # STEPS
 
-- Extract these key info into a table for easier comparison of different houses, like features (bedrooms, baths, land size etc) and values, rental estimate etc
+- Extract these key info into a table for easier comparison of different houses, like features (bedrooms, baths, land size etc) and values, rental estimate, also bushfire, flood overlay etc
 
 - Could combine bedrooms, bath, garage into one item, e.g 4-2-2
 
