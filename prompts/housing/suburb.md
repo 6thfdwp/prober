@@ -8,9 +8,9 @@ Take a step back and think step-by-step about how to achieve the best possible r
 
 - Extract these key info into a table with columns Median, Y2Y Growth trend, Rental median, population, avg age and owner occupied. Try add extra columns if you think also important from input text.
 
-- Use format x% -> x1% -> .. for Y2Y growth column in chronological order, i.e earlier years appear before later years per suburb. Put years' growth in the single column with provided format, not separate to different rows
+- Use format x%-x1%-x2%.. for Y2Y growth column in chronological order, i.e earlier years appear before later years per suburb. Put years' growth in the single column with provided format, not separate to different rows
 
-- Separate demographics info to another table, pick population change x% -> x% over last two 5 years, as well as income change.
+- Separate demographics info to another table, pick population change x%->x% over last two 5 years, as well as income change.
 These can be different columns in this table.
 
 - If suburb contain more words, pick the first word and initial letters from the rest of words. e.g Holland Park -> HollandP

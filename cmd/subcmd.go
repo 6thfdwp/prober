@@ -144,6 +144,9 @@ func onExecSubStreet(subName string, street string, lots []string) string {
 		houseKeyInfo := collectHouseProfile(browser, subProfile.ToPropertyHouseUrl(*href))
 		res[subName+"/"+street] = houseKeyInfo
 		res[*href] = houseKeyInfo
+
+		// sleepDuration := time.Duration(rand.Int()) * time.Second
+		// time.Sleep(sleepDuration)
 		time.Sleep(1 * time.Second)
 	}
 
